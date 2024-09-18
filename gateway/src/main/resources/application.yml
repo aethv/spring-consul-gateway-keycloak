@@ -1,0 +1,67 @@
+server:
+  port: 8787
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration
+  application:
+    name: gateway-app
+  security:
+    oauth2:
+      client:
+        registration:
+          gateway:
+            provider: keycloak
+            client-id: spring-learn-client
+            client-secret: 8FjS5coZIo8DZoKjuIFdKJcmLSZlsDQm
+            authorization-grant-type: authorization_code
+            scope: openid
+        provider:
+          keycloak:
+            authorization-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/auth
+            token-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/token
+            user-info-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/userinfo
+            jwk-set-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/certs
+            issuer-uri: http://localhost:8180/realms/spring-learn-tutorial
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service
+            - Method=POST, GET
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service
+            - Method=POST, GET
+    loadbalancer:
+      configurations: health-check
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        hostname: localhost
+      config:
+        enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
+#server.forward-headers-strategy: framework
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.cloud: DEBUG
+#    org.springframework.cloud.gateway: TRACE
+#    org.springframework.cloud.consul: TRACE

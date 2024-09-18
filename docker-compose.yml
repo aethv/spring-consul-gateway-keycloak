@@ -1,0 +1,63 @@
+services:
+  postgres:
+      image: postgres:15.8-alpine3.20
+      container_name: postgres-db
+      volumes:
+        - ./postgres_data:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: keycloakdb
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: password123
+      ports:
+        - 5432:5432
+      networks:
+        - keycloak-network
+      restart: always
+
+  keycloak:
+    image: "quay.io/keycloak/keycloak:25.0.2"
+    container_name: quarkus-keycloak
+    restart: always # the first time starting always fails, so we need to restart
+    ports:
+      - 8180:8080 # Changing this port because 8080 is usually the default for the quarkus app
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HEALTH_ENABLED=true
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres/keycloakdb
+      - KC_DB_USER=keycloak
+      - KC_DB_PASSWORD=password123
+    command:
+      - start
+      - --import-realm
+    volumes:
+      - ./imports:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+    networks:
+      - keycloak-network
+
+  consul:
+    image: consul:1.15.3
+    container_name: consul
+    ports:
+      - 8500:8500    # Web UI and API on localhost:8500
+      - 8600:8600    # DNS interface
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+    networks:
+      - consul-network
+    restart: always
+
+# Volumes
+volumes:
+  postgres_data:
+
+# Networks
+networks:
+  keycloak-network:
+  consul-network:

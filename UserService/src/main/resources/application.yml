@@ -1,0 +1,31 @@
+server:
+  port: 4501
+
+spring:
+  application:
+    name: user-service
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      discovery:
+        prefer-ip-address: false
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        hostname: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/certs
+          issuer-uri: http://localhost:8180/realms/spring-learn-tutorial
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
+logging:
+  level:
+    org.springframework: INFO
+

@@ -1,0 +1,59 @@
+server:
+  port: 4500
+
+spring:
+  application:
+    name: product-service
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      discovery:
+        prefer-ip-address: false
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        hostname: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/spring-learn-tutorial/protocol/openid-connect/certs
+          issuer-uri: http://localhost:8180/realms/spring-learn-tutorial
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 5
+        waitDuration: 1s
+        enableExponentialBackoff: true
+  bulkhead:
+    instances:
+      bulkhead:
+        maxConcurrentCalls: 10
+  timelimiter:
+    instances:
+      time-limiter:
+        timeoutDuration: 2s
+
+  ratelimiter:
+    instances:
+      rate-limiter:
+        limitRefreshPeriod: 60s
+        limitForPeriod: 2
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 10
+        slidingWindowSize: 10
+        waitDurationInOpenState: 60s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
+logging:
+  level:
+    org.springframework: INFO
