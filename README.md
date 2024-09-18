@@ -4,6 +4,9 @@
 3. Keycloak
 4. Retry & Resilient
 
+### Diagram
+<img alt="diagram" src="diagram.png">
+
 ### Services:
 1. Consul: http://localhost:8500
 2. Keycloak: http://localhost:8180
